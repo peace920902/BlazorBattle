@@ -1,0 +1,13 @@
+﻿@page "/"
+
+<AuthorizeView>
+    <Authorized>
+        <h1>Hi, @context.User.Identity.Name. Welcome back!</h1>
+        Let's admire <NavLink href="army">your beloved army.</NavLink>
+    </Authorized>
+    <NotAuthorized>
+        <h1>Let Battle!</h1>
+        <Login />
+    </NotAuthorized>
+</AuthorizeView>
+

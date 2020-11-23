@@ -1,0 +1,46 @@
+﻿@page "/army"
+@using BlazorBattle.Client.Service
+@inject IUnitService UnitService
+@attribute [Authorize]
+
+<h3>Army</h3>
+
+@if (UnitService.Units.Count > 0)
+{
+    @foreach (var userUnit in UnitService.MyUnits)
+    {
+        <div class="army-list">
+            <div>
+                @switch (userUnit.UnitId)
+                {
+                    case 1:
+                        <img src="icons/W_Sword006.png">
+                        break;
+                    case 2:
+                        <img src="icons/S_Bow08.png" />
+                        break;
+                    case 3:
+                        <img src="icons/C_Hat01.png" />
+                        break;
+                }
+            </div>
+            <div>
+                @UnitService.Units.First(x => x.Id == userUnit.UnitId).Title
+            </div>
+            <div>
+                @userUnit.HitPoints HP
+            </div>
+        </div>
+    }
+}
+else
+{
+    <span>Loading</span>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await UnitService.LoadUnitsAsync();
+    }
+}
