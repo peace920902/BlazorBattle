@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazorBattle.Server.data
 {
-    public class AuthRepository:IAuthRepository
+    public class AuthRepository : IAuthRepository
     {
         private readonly DataContext _dataContext;
 
@@ -40,12 +40,29 @@ namespace BlazorBattle.Server.data
 
         public async Task<ServiceResponse<string>> Login(string email, string password)
         {
-            throw new System.NotImplementedException();
+            var response = new ServiceResponse<string>();
+            var user = await _dataContext.Users.FirstOrDefaultAsync(x=>x.Email.ToLower().Equals(email.ToLower()));
+            if (user == null)
+            {
+                response.Success = false;
+                response.Message = "User Not Found";
+            }
+            else if(!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            {
+                response.Success = false;
+                response.Message = "Wrong password.";
+            }
+            else
+            {
+                response.Data = user.Id.ToString();
+            }
+
+            return response;
         }
 
         public async Task<bool> UserExist(string email)
         {
-            return await _dataContext.Users.AnyAsync(x => x.Email.Equals(email, StringComparison.CurrentCultureIgnoreCase));
+            return await _dataContext.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -53,6 +70,15 @@ namespace BlazorBattle.Server.data
             using var hmac = new System.Security.Cryptography.HMACSHA512();
             passwordSalt = hmac.Key;
             passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+        }
+
+        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+        {
+            using var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt);
+            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+            if (hash.Length != passwordHash.Length) return false;
+            return !hash.Where((t, i) => t != passwordHash[i]).Any();
         }
     }
 }

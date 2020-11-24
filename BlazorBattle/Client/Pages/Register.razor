@@ -3,6 +3,8 @@
 @using BlazorBattle.Client.Service
 @inject IUnitService UnitService
 @inject NavigationManager NavigationManager
+@inject IAuthService AuthService
+@inject IToastService ToastService
 
 <h3>Register</h3>
 
@@ -14,7 +16,7 @@
             <ValidationMessage For="@(() => user.Email)"></ValidationMessage>
         </div>
         <div class="form-group">
-            <label for="username">UserName</label>
+            <label for="username">Email</label>
             <InputText id="username" @bind-Value="user.UserName" class="form-control"></InputText>
             <ValidationMessage For="@(() => user.UserName)"></ValidationMessage>
         </div>
@@ -30,7 +32,7 @@
         </div>
         <div class="form-group">
             <label for="bio">Bio</label>
-            <InputText id="bio" @bind-Value="user.Bio" class="form-control"></InputText>
+            <InputTextArea id="bio" @bind-Value="user.Bio" class="form-control"></InputTextArea>
         </div>
         <div class="form-group">
             <label for="bananas">Bananas</label>
@@ -62,9 +64,18 @@
 @code {
     UserRegister user = new UserRegister();
 
-    void HandlerRegister()
+    async void HandlerRegister()
     {
-        NavigationManager.NavigateTo("login");
+        var response = await AuthService.Register(user);
+        if (response.Success)
+        {
+            ToastService.ShowSuccess(response.Message);
+            NavigationManager.NavigateTo("login");
+        }
+        else
+        {
+            ToastService.ShowError(response.Message);
+        }
     }
 
     protected override async Task OnInitializedAsync()
