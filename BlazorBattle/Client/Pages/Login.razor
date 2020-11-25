@@ -31,7 +31,7 @@ Please login or <NavLink href="register">register</NavLink> a new account.
         var response = await AuthService.Login(user);
         if (response.Success)
         {
-            await LocalStorageService.SetItemAsync<bool>("isAuthenticated", true);
+            await LocalStorageService.SetItemAsync<string>("authToken", response.Data);
             await AuthenticationState.GetAuthenticationStateAsync();
         }
         else
