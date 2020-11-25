@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace BlazorBattle.Client.Service
 {
@@ -7,6 +8,8 @@ namespace BlazorBattle.Client.Service
         event Action OnChange;
         public int Bananas { get; set; }
         void EatBananas(int amount);
-        void AddBananas(int amount);
+        Task AddBananas(int amount);
+
+        Task GetBananas();
     }
 }
