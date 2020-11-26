@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BlazorBattle.Server.data;
+using BlazorBattle.Server.Services;
 using BlazorBattle.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,28 +16,26 @@ namespace BlazorBattle.Server.Controllers
     public class UserController : Controller
     {
         private readonly DataContext _dataContext;
+        private readonly IUtilityService _utilityService;
 
         // GET
-        public UserController(DataContext dataContext)
+        public UserController(DataContext dataContext,IUtilityService utilityService)
         {
             _dataContext = dataContext;
+            _utilityService = utilityService;
         }
-
-        private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        private async Task<User> GetUser()=> await _dataContext.Users.FirstOrDefaultAsync(x => x.Id == GetUserId());
-
 
         [HttpGet("GetBananas")]
         public async Task<IActionResult> GetBananas()
         {
-            var user = await GetUser();
+            var user = await _utilityService.GetUser();
             return Ok(user.Bananas);
         }
 
         [HttpPut("AddBananas")]
         public async Task<IActionResult> AddBananas([FromBody] int bananas)
         {
-            var user = await GetUser();
+            var user = await _utilityService.GetUser();
             user.Bananas += bananas;
 
             await _dataContext.SaveChangesAsync();
