@@ -16,5 +16,8 @@ namespace BlazorBattle.Shared
         public bool IsDeleted { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.Now;
         public List<UserUnit> Units { get; set; }
+        public int Battles { get; set; }
+        public int Victories { get; set; }
+        public int Defeats { get; set; }
     }
 }
