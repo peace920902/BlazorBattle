@@ -1,0 +1,59 @@
+﻿@page "/LeaderBoard"
+@using BlazorBattle.Client.Service
+@using System.Security.Claims
+@inject ILeaderBoardService LeaderBoardService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>LeaderBoard</h3>
+
+@if (LeaderBoardService.LeaderBoard == null)
+{
+<span>Loading LeaderBoard...</span> }
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Victories</th>
+                <th>Defeats</th>
+                <th>Battles</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var entry in LeaderBoardService.LeaderBoard)
+        {
+            <tr style="@GetMyStyle(entry.UserId)">
+                <td>@entry.Rank</td>
+                <td>@entry.UserName</td>
+                <td>@entry.Victories</td>
+                <td>@entry.Defeats</td>
+                <td>@entry.Battles</td>
+                <td>
+                    @if (entry.UserId != myUserId)
+                    {
+                        <button class="btn btn-primary">Fight</button>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code { int myUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LeaderBoardService.GetLeaderBoard();
+
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        myUserId = int.Parse(authenticationState.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+    }
+
+    public string GetMyStyle(int userId)
+    {
+        return userId == myUserId ? "color: green; font-weight: 600;" : string.Empty;
+    } }
