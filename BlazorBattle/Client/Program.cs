@@ -30,6 +30,7 @@ namespace BlazorBattle.Client
             builder.Services.AddOptions();
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<AuthenticationStateProvider, CustomerAuthProvider>();
+            builder.Services.AddScoped<ILeaderBoardService, LeaderBoardService>();
 
             await builder.Build().RunAsync();
         }
