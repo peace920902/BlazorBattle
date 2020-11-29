@@ -5,7 +5,7 @@ namespace BlazorBattle.Server.data
 {
     public interface IAuthRepository
     {
-        Task<ServiceResponse<int>> Register(User user, string password);
+        Task<ServiceResponse<int>> Register(User user, string password,int unitId);
         Task<ServiceResponse<string>> Login(string email, string password);
         Task<bool> UserExist(string email);
     }

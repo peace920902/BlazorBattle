@@ -3,12 +3,16 @@
 @using System.Security.Claims
 @inject ILeaderBoardService LeaderBoardService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IBattleService BattleService
+@inject IBananaService BananaService
+@inject IToastService ToastService
+@inject NavigationManager NavigationManager
 
 <h3>LeaderBoard</h3>
 
 @if (LeaderBoardService.LeaderBoard == null)
 {
-<span>Loading LeaderBoard...</span> }
+    <span>Loading LeaderBoard...</span> }
 else
 {
     <table class="table">
@@ -23,37 +27,54 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var entry in LeaderBoardService.LeaderBoard)
-        {
-            <tr style="@GetMyStyle(entry.UserId)">
-                <td>@entry.Rank</td>
-                <td>@entry.UserName</td>
-                <td>@entry.Victories</td>
-                <td>@entry.Defeats</td>
-                <td>@entry.Battles</td>
-                <td>
-                    @if (entry.UserId != myUserId)
-                    {
-                        <button class="btn btn-primary">Fight</button>
-                    }
-                </td>
-            </tr>
-        }
+            @foreach (var entry in LeaderBoardService.LeaderBoard)
+            {
+                <tr style="@GetMyStyle(entry.UserId)">
+                    <td>@entry.Rank</td>
+                    <td>@entry.UserName</td>
+                    <td>@entry.Victories</td>
+                    <td>@entry.Defeats</td>
+                    <td>@entry.Battles</td>
+                    <td>
+                        @if (entry.UserId != _myUserId)
+                        {
+                            <button class="btn btn-primary" @onclick="@(() => StartBattle(entry.UserId))">Fight</button>
+                        }
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 }
 
-@code { int myUserId;
+@code {
+    private int _myUserId;
 
     protected override async Task OnInitializedAsync()
     {
         await LeaderBoardService.GetLeaderBoard();
 
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        myUserId = int.Parse(authenticationState.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        _myUserId = int.Parse(authenticationState.User.FindFirst(ClaimTypes.NameIdentifier).Value);
     }
 
     public string GetMyStyle(int userId)
     {
-        return userId == myUserId ? "color: green; font-weight: 600;" : string.Empty;
-    } }
+        return userId == _myUserId ? "color: green; font-weight: 600;" : string.Empty;
+    }
+
+    public async Task StartBattle(int opponentId)
+    {
+        var result = await BattleService.StartBattle(opponentId);
+        if (result.RoundsFought <= 0) ToastService.ShowInfo("The Battle did not take place.");
+        else if (result.IsVictory) ToastService.ShowSuccess("You won the battle!");
+        else ToastService.ShowWarning("You have been defeated");
+
+        await LeaderBoardService.GetLeaderBoard();
+        await BananaService.GetBananas();
+
+
+        if(result.RoundsFought>0)
+            NavigationManager.NavigateTo("battlelog");
+    }
+}

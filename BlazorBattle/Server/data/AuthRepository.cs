@@ -22,7 +22,7 @@ namespace BlazorBattle.Server.data
             _dataContext = dataContext;
             _configuration = configuration;
         }
-        public async Task<ServiceResponse<int>> Register(User user, string password)
+        public async Task<ServiceResponse<int>> Register(User user, string password, int unitId)
         {
             if (await UserExist(user.Email))
             {
@@ -38,11 +38,27 @@ namespace BlazorBattle.Server.data
             user.PasswordSalt = passwordSalt;
             await _dataContext.Users.AddAsync(user);
             await _dataContext.SaveChangesAsync();
+
+            await AddStartingUnit(user, unitId);
+
             return new ServiceResponse<int>()
             {
                 Data = user.Id,
                 Message = "Registration successful!"
             };
+        }
+
+        private async Task AddStartingUnit(User user, int unitId)
+        {
+            var unit = await _dataContext.Units.FindAsync(unitId);
+            await _dataContext.UserUnits.AddAsync(new UserUnit
+            {
+                UnitId = unitId,
+                UserId = user.Id,
+                HitPoints = unit.HitPoints
+            });
+
+            await _dataContext.SaveChangesAsync();
         }
 
         public async Task<ServiceResponse<string>> Login(string email, string password)

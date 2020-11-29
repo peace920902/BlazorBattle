@@ -42,6 +42,33 @@ namespace BlazorBattle.Server.Controllers
             return Ok(result);
         }
 
+
+        [HttpGet("History")]
+        public async Task<IActionResult> GetHistory()
+        {
+            var user = await _utilityService.GetUser();
+            var battles = await _dataContext.Battles
+                .Where(battle => battle.AttackerId == user.Id || battle.OpponentId == user.Id)
+                .Include(x => x.Attacker)
+                .Include(x => x.Opponent)
+                .Include(x => x.Winner)
+                .ToListAsync();
+
+            var history = battles.Select(x => new BattleHistoryEntry()
+            {
+                BattleId = x.Id,
+                AttackerId = x.AttackerId,
+                OpponentId = x.OpponentId,
+                YouWon = x.WinnerId == user.Id,
+                AttackerName = x.Attacker.UserName,
+                OpponentName = x.Opponent.UserName,
+                RoundsFought = x.RoundsFought,
+                WinnerDamageDealt = x.WinnerDamage,
+                BattleDate = x.BattleDate
+            });
+            return Ok(history.OrderByDescending(x => x.BattleDate));
+        }
+
         private async Task Fight(User attacker, User opponent, BattleResult result)
         {
             var attackerArmy = await _dataContext.UserUnits.Where(x => x.UserId == attacker.Id && x.HitPoints > 0)

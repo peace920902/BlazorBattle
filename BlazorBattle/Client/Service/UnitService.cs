@@ -57,5 +57,17 @@ namespace BlazorBattle.Client.Service
         {
             MyUnits = await _http.GetFromJsonAsync<IList<UserUnit>>("api/userunit");
         }
+
+        public async Task ReviveArmy()
+        {
+            var result =await _http.PostAsJsonAsync<string>("api/userunit/revive", null);
+            if(result.StatusCode == HttpStatusCode.OK)
+                _toastService.ShowSuccess(await result.Content.ReadAsStringAsync());
+            else
+            
+                _toastService.ShowError(await result.Content.ReadAsStringAsync());
+            await LoadUserUnitsAsync();
+            await _bananaService.GetBananas();
+        }
     }
 }
